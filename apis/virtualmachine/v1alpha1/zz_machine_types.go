@@ -497,11 +497,6 @@ type MachineParameters struct {
 	// +kubebuilder:validation:Optional
 	EnableLogging *bool `json:"enableLogging,omitempty" tf:"enable_logging,omitempty"`
 
-	// The EPT/RVI (hardware memory virtualization) setting for the virtual machine. One of automatic, on, or off. Default: automatic.
-	// The EPT/RVI (hardware memory virtualization) setting for this virtual machine. Can be one of automatic, on, or off.
-	// +kubebuilder:validation:Optional
-	EptRviMode *string `json:"eptRviMode,omitempty" tf:"ept_rvi_mode,omitempty"`
-
 	// Extra configuration data for the virtual machine. Can be used to supply advanced parameters not normally in configuration, such as instance metadata and userdata.
 	// Extra configuration data for this virtual machine. Can be used to supply advanced parameters not normally in configuration, such as instance metadata, or configuration data for OVF images.
 	// +kubebuilder:validation:Optional
@@ -541,11 +536,6 @@ type MachineParameters struct {
 	// The ID of an optional host system to pin the virtual machine to.
 	// +kubebuilder:validation:Optional
 	HostSystemID *string `json:"hostSystemId,omitempty" tf:"host_system_id,omitempty"`
-
-	// The hardware virtualization (non-nested) setting for the virtual machine. One of hvAuto, hvOn, or hvOff. Default: hvAuto.
-	// The (non-nested) hardware virtualization setting for this virtual machine. Can be one of hvAuto, hvOn, or hvOff.
-	// +kubebuilder:validation:Optional
-	HvMode *string `json:"hvMode,omitempty" tf:"hv_mode,omitempty"`
 
 	// The number of IDE controllers that the virtual machine. This directly affects the number of disks you can add to the virtual machine and the maximum disk unit number. Note that lowering this value does not remove controllers. Default: 2. This directly affects the amount of disks you can add to the virtual machine and the maximum disk unit number. Note that lowering this value does not remove controllers.
 	// +kubebuilder:validation:Optional
