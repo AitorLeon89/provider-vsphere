@@ -23,7 +23,8 @@ img.publish:
 
 img.build.shared:
 	@cp Dockerfile $(IMAGE_TEMP_DIR) || $(FAIL)
-	@cp terraformrc.hcl $(IMAGE_TEMP_DIR) || $(FAIL)
+#	@cp terraformrc.hcl $(IMAGE_TEMP_DIR) && cp terraform-provider-vsphere_v2.7.1_x5 /tmp/ || $(FAIL)
+	@cp terraform* $(IMAGE_TEMP_DIR) || $(FAIL)
 	@cp -r $(OUTPUT_DIR)/bin/ $(IMAGE_TEMP_DIR)/bin || $(FAIL)
 	@docker buildx build $(BUILD_ARGS) \
 		--platform $(IMAGE_PLATFORMS) \

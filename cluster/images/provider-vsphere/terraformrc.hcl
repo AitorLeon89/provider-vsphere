@@ -1,6 +1,6 @@
 provider_installation {
   filesystem_mirror {
-    path    = "/terraform/provider-mirror"
+    path    = "/terraform.local/local"
     include = ["*/*"]
   }
   direct {
