@@ -363,6 +363,11 @@ type ClusterParameters struct {
 	// +kubebuilder:validation:Optional
 	HostClusterExitTimeout *float64 `json:"hostClusterExitTimeout,omitempty" tf:"host_cluster_exit_timeout,omitempty"`
 
+	// Enables vLCM on the cluster and applies an ESXi image with the provided configuration.
+	// Details about the host image which should be applied to the cluster.
+	// +kubebuilder:validation:Optional
+	HostImage []HostImageParameters `json:"hostImage,omitempty" tf:"host_image,omitempty"`
+
 	// Can be set to true if compute cluster
 	// membership will be managed through the host resource rather than the
 	// compute_cluster resource. Conflicts with: host_system_ids.
@@ -467,6 +472,16 @@ type ClusterParameters struct {
 	// +kubebuilder:validation:Optional
 	VsanEnabled *bool `json:"vsanEnabled,omitempty" tf:"vsan_enabled,omitempty"`
 
+	// Enables vSAN ESA on the cluster.
+	// Whether the vSAN ESA service is enabled for the cluster.
+	// +kubebuilder:validation:Optional
+	VsanEsaEnabled *bool `json:"vsanEsaEnabled,omitempty" tf:"vsan_esa_enabled,omitempty"`
+
+	// Configurations of vSAN fault domains.
+	// The configuration for vSAN fault domains.
+	// +kubebuilder:validation:Optional
+	VsanFaultDomains []VsanFaultDomainsParameters `json:"vsanFaultDomains,omitempty" tf:"vsan_fault_domains,omitempty"`
+
 	// Enables network
 	// diagnostic mode for vSAN performance service on the cluster.
 	// Whether the vSAN network diagnostic mode is enabled for the cluster.
@@ -487,7 +502,13 @@ type ClusterParameters struct {
 	// +kubebuilder:validation:Optional
 	VsanRemoteDatastoreIds []*string `json:"vsanRemoteDatastoreIds,omitempty" tf:"vsan_remote_datastore_ids,omitempty"`
 
+	// Configurations of vSAN stretched cluster.
+	// The configuration for stretched cluster.
+	// +kubebuilder:validation:Optional
+	VsanStretchedCluster []VsanStretchedClusterParameters `json:"vsanStretchedCluster,omitempty" tf:"vsan_stretched_cluster,omitempty"`
+
 	// Enables vSAN unmap on the cluster.
+	// You must explicitly enable vSAN unmap when you enable vSAN ESA on the cluster.
 	// Whether the vSAN unmap service is enabled for the cluster.
 	// +kubebuilder:validation:Optional
 	VsanUnmapEnabled *bool `json:"vsanUnmapEnabled,omitempty" tf:"vsan_unmap_enabled,omitempty"`
@@ -497,6 +518,54 @@ type ClusterParameters struct {
 	// Whether the vSAN verbose mode is enabled for the cluster.
 	// +kubebuilder:validation:Optional
 	VsanVerboseModeEnabled *bool `json:"vsanVerboseModeEnabled,omitempty" tf:"vsan_verbose_mode_enabled,omitempty"`
+}
+
+type ComponentObservation struct {
+}
+
+type ComponentParameters struct {
+
+	// The identifier of the component
+	// The identifier for the component.
+	// +kubebuilder:validation:Optional
+	Key *string `json:"key,omitempty" tf:"key,omitempty"`
+
+	// The version of the component
+	// The version to use.
+	// +kubebuilder:validation:Optional
+	Version *string `json:"version,omitempty" tf:"version,omitempty"`
+}
+
+type FaultDomainObservation struct {
+}
+
+type FaultDomainParameters struct {
+
+	// The managed object IDs of the hosts to put in the fault domain.
+	// The managed object IDs of the hosts to put in the fault domain.
+	// +kubebuilder:validation:Required
+	HostIds []*string `json:"hostIds" tf:"host_ids,omitempty"`
+
+	// The name of the cluster.
+	// The name of fault domain.
+	// +kubebuilder:validation:Required
+	Name *string `json:"name" tf:"name,omitempty"`
+}
+
+type HostImageObservation struct {
+}
+
+type HostImageParameters struct {
+
+	// A custom component to add to the base image. TODO - add link to offline depot resource docs
+	// List of custom components.
+	// +kubebuilder:validation:Optional
+	Component []ComponentParameters `json:"component,omitempty" tf:"component,omitempty"`
+
+	// The ESXi version which will be used as a base for the image. See host_base_images.
+	// The ESXi version which the image is based on.
+	// +kubebuilder:validation:Optional
+	EsxVersion *string `json:"esxVersion,omitempty" tf:"esx_version,omitempty"`
 }
 
 type VsanDiskGroupObservation struct {
@@ -513,6 +582,48 @@ type VsanDiskGroupParameters struct {
 	// List of storage disks.
 	// +kubebuilder:validation:Optional
 	Storage []*string `json:"storage,omitempty" tf:"storage,omitempty"`
+}
+
+type VsanFaultDomainsObservation struct {
+}
+
+type VsanFaultDomainsParameters struct {
+
+	// The configuration for single fault domain.
+	// The configuration for single fault domain.
+	// +kubebuilder:validation:Optional
+	FaultDomain []FaultDomainParameters `json:"faultDomain,omitempty" tf:"fault_domain,omitempty"`
+}
+
+type VsanStretchedClusterObservation struct {
+}
+
+type VsanStretchedClusterParameters struct {
+
+	// The managed object IDs of the hosts to put in the first fault domain.
+	// The managed object IDs of the hosts to put in the first fault domain.
+	// +kubebuilder:validation:Required
+	PreferredFaultDomainHostIds []*string `json:"preferredFaultDomainHostIds" tf:"preferred_fault_domain_host_ids,omitempty"`
+
+	// The name of first fault domain. Default is Preferred.
+	// The name of prepferred fault domain.
+	// +kubebuilder:validation:Optional
+	PreferredFaultDomainName *string `json:"preferredFaultDomainName,omitempty" tf:"preferred_fault_domain_name,omitempty"`
+
+	// The managed object IDs of the hosts to put in the second fault domain.
+	// The managed object IDs of the hosts to put in the second fault domain.
+	// +kubebuilder:validation:Required
+	SecondaryFaultDomainHostIds []*string `json:"secondaryFaultDomainHostIds" tf:"secondary_fault_domain_host_ids,omitempty"`
+
+	// The name of second fault domain. Default is Secondary.
+	// The name of secondary fault domain.
+	// +kubebuilder:validation:Optional
+	SecondaryFaultDomainName *string `json:"secondaryFaultDomainName,omitempty" tf:"secondary_fault_domain_name,omitempty"`
+
+	// The managed object IDs of the host selected as witness node when enable stretched cluster.
+	// The managed object IDs of the host selected as witness node when enable stretched cluster.
+	// +kubebuilder:validation:Required
+	WitnessNode *string `json:"witnessNode" tf:"witness_node,omitempty"`
 }
 
 // ClusterSpec defines the desired state of Cluster

@@ -23,7 +23,7 @@ type HostParameters struct {
 
 	// The ID of the Compute Cluster this host should
 	// be added to. This should not be set if datacenter is set. Conflicts with:
-	// cluster.
+	// cluster_managed.
 	// ID of the vSphere cluster the host will belong to.
 	// +kubebuilder:validation:Optional
 	Cluster *string `json:"cluster,omitempty" tf:"cluster,omitempty"`

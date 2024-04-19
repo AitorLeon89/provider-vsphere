@@ -87,11 +87,11 @@ type VnicParameters struct {
 	// +kubebuilder:validation:Required
 	Host *string `json:"host" tf:"host,omitempty"`
 
-	// IPv4 settings. Either this or ipv6 needs to be set. See  ipv4 options below.
+	// IPv4 settings. Either this or ipv6 needs to be set. See IPv4 options below.
 	// +kubebuilder:validation:Optional
 	IPv4 []IPv4Parameters `json:"ipv4,omitempty" tf:"ipv4,omitempty"`
 
-	// IPv6 settings. Either this or ipv6 needs to be set. See  ipv6 options below.
+	// IPv6 settings. Either this or ipv6 needs to be set. See IPv6 options below.
 	// +kubebuilder:validation:Optional
 	IPv6 []IPv6Parameters `json:"ipv6,omitempty" tf:"ipv6,omitempty"`
 
@@ -105,7 +105,7 @@ type VnicParameters struct {
 	// +kubebuilder:validation:Optional
 	Mtu *float64 `json:"mtu,omitempty" tf:"mtu,omitempty"`
 
-	// TCP/IP stack setting for this interface. Possible values are 'defaultTcpipStack', 'vmotion', 'vSphereProvisioning'. Changing this will force the creation of a new interface since it's not possible to change the stack once it gets created. (Default: defaultTcpipStack)
+	// TCP/IP stack setting for this interface. Possible values are defaultTcpipStack``, 'vmotion', 'vSphereProvisioning'. Changing this will force the creation of a new interface since it's not possible to change the stack once it gets created. (Default:defaultTcpipStack`)
 	// TCP/IP stack setting for this interface. Possible values are 'defaultTcpipStack', 'vmotion', 'provisioning'
 	// +kubebuilder:validation:Optional
 	Netstack *string `json:"netstack,omitempty" tf:"netstack,omitempty"`
@@ -114,6 +114,11 @@ type VnicParameters struct {
 	// portgroup to attach the nic to. Do not set if you set distributed_switch_port.
 	// +kubebuilder:validation:Optional
 	Portgroup *string `json:"portgroup,omitempty" tf:"portgroup,omitempty"`
+
+	// Enabled services setting for this interface. Currently support values are vmotion, management, and vsan.
+	// Enabled services setting for this interface. Current possible values are 'vmotion', 'management' and 'vsan'
+	// +kubebuilder:validation:Optional
+	Services []*string `json:"services,omitempty" tf:"services,omitempty"`
 }
 
 // VnicSpec defines the desired state of Vnic

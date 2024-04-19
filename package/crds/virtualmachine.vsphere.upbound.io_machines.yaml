@@ -124,12 +124,36 @@ spec:
                       a virtual machine from template.
                     items:
                       properties:
+                        customizationSpec:
+                          description: The customization specification for the virtual
+                            machine post-clone.
+                          items:
+                            properties:
+                              id:
+                                description: The UUID of the virtual machine. The
+                                  unique identifier of the customization specification
+                                  is its name and is unique per vCenter Server instance.
+                                type: string
+                              timeout:
+                                description: 'The time, in minutes, that the provider
+                                  waits for customization to complete before failing.
+                                  The default is 10 minutes. Setting the value to
+                                  0 or a negative value disables the waiter. The amount
+                                  of time, in minutes, to wait for guest OS customization
+                                  to complete before returning with an error. Setting
+                                  this value to 0 or a negative value skips the waiter.
+                                  Default: 10.'
+                                type: number
+                            required:
+                            - id
+                            type: object
+                          type: array
                         customize:
                           description: The customization spec for this clone. This
                             allows the user to configure the virtual machine post-clone.
                             For more details, see virtual machine customizations.
-                            The customization spec for this clone. This allows the
-                            user to configure the virtual machine post-clone.
+                            The customization specification for the virtual machine
+                            post-clone.
                           items:
                             properties:
                               dnsServerList:
@@ -227,9 +251,9 @@ spec:
                                   type: object
                                 type: array
                               networkInterface:
-                                description: When deleting a network interface and
-                                  VMware Tools is not running. A specification of
-                                  network interface configuration options.
+                                description: 'resource takes a physical_function argument:
+                                  A specification of network interface configuration
+                                  options.'
                                 items:
                                   properties:
                                     dnsDomain:
@@ -281,13 +305,14 @@ spec:
                                   type: object
                                 type: array
                               timeout:
-                                description: The time, in minutes, that the provider
+                                description: 'The time, in minutes, that the provider
                                   waits for customization to complete before failing.
                                   The default is 10 minutes. Setting the value to
                                   0 or a negative value disables the waiter. The amount
                                   of time, in minutes, to wait for guest OS customization
                                   to complete before returning with an error. Setting
                                   this value to 0 or a negative value skips the waiter.
+                                  Default: 10.'
                                 type: number
                               windowsOptions:
                                 description: A list of configuration options specific
@@ -702,12 +727,6 @@ spec:
                       file stored in the virtual machine directory. Default: false.
                       Enable logging on this virtual machine.'
                     type: boolean
-                  eptRviMode:
-                    description: 'The EPT/RVI (hardware memory virtualization) setting
-                      for the virtual machine. One of automatic, on, or off. Default:
-                      automatic. The EPT/RVI (hardware memory virtualization) setting
-                      for this virtual machine. Can be one of automatic, on, or off.'
-                    type: string
                   extraConfig:
                     additionalProperties:
                       type: string
@@ -748,25 +767,14 @@ spec:
                     type: string
                   hardwareVersion:
                     description: The hardware version number. Valid range is from
-                      4 to 19. The hardware version cannot be downgraded. See virtual
-                      machine hardware compatibility for more information. The hardware
-                      version for the virtual machine.
+                      4 to 21. The hardware version cannot be downgraded. See virtual
+                      machine hardware versions and compatibility for more information
+                      on supported settings. The hardware version for the virtual
+                      machine.
                     type: number
                   hostSystemId:
-                    description: The managed object reference ID of a host on which
-                      to place the virtual machine. See the section on virtual machine
-                      migration for more information on modifying this value. When
-                      using a vSphere cluster, if a host_system_id is not supplied,
-                      vSphere will select a host in the cluster to place the virtual
-                      machine, according to any defaults or vSphere DRS placement
-                      policies. The ID of an optional host system to pin the virtual
-                      machine to.
-                    type: string
-                  hvMode:
-                    description: 'The hardware virtualization (non-nested) setting
-                      for the virtual machine. One of hvAuto, hvOn, or hvOff. Default:
-                      hvAuto. The (non-nested) hardware virtualization setting for
-                      this virtual machine. Can be one of hvAuto, hvOn, or hvOff.'
+                    description: option. The ID of an optional host system to pin
+                      the virtual machine to.
                     type: string
                   ideControllerCount:
                     description: 'The number of IDE controllers that the virtual machine.
@@ -821,6 +829,14 @@ spec:
                       memory (in MB) or CPU (in MHz) that this virtual machine is
                       guaranteed.
                     type: number
+                  memoryReservationLockedToMax:
+                    description: If set true, memory resource reservation for this
+                      virtual machine will always be equal to the virtual machine's
+                      memory size;increases in memory size will be rejected when a
+                      corresponding reservation increase is not possible. This feature
+                      may only be enabled if it is currently possible to reserve all
+                      of the virtual machine's memory.
+                    type: boolean
                   memoryShareCount:
                     description: The number of memory shares allocated to the virtual
                       machine when the memory_share_level is custom. The amount of
@@ -839,6 +855,10 @@ spec:
                       The amount of time, in minutes, to wait for a vMotion operation
                       to complete before failing.'
                     type: number
+                  name:
+                    description: The name of the virtual machine. The name of this
+                      virtual machine.
+                    type: string
                   nestedHvEnabled:
                     description: 'Enable nested hardware virtualization on the virtual
                       machine, facilitating nested virtualization in the guest operating
@@ -847,20 +867,21 @@ spec:
                       in the guest.'
                     type: boolean
                   networkInterface:
-                    description: When deleting a network interface and VMware Tools
-                      is not running. A specification for a virtual NIC on this virtual
-                      machine.
+                    description: 'resource takes a physical_function argument: A specification
+                      for a virtual NIC on this virtual machine.'
                     items:
                       properties:
                         adapterType:
                           description: 'The network interface type. One of e1000,
-                            e1000e, or vmxnet3. Default: vmxnet3. The controller type.
-                            Can be one of e1000, e1000e, vmxnet3, or vrdma.'
+                            e1000e, sriov, or vmxnet3. Default: vmxnet3. The controller
+                            type. Can be one of e1000, e1000e, sriov, vmxnet3, or
+                            vrdma.'
                           type: string
                         bandwidthLimit:
                           description: The upper bandwidth limit of the network interface,
-                            in Mbits/sec. The default is no limit. The upper bandwidth
-                            limit of this network interface, in Mbits/sec.
+                            in Mbits/sec. The default is no limit. Ignored if adapter_type
+                            is set to sriov. The upper bandwidth limit of this network
+                            interface, in Mbits/sec.
                           type: number
                         bandwidthReservation:
                           description: The bandwidth reservation of the network interface,
@@ -869,15 +890,16 @@ spec:
                           type: number
                         bandwidthShareCount:
                           description: The share count for the network interface when
-                            the share level is custom. The share count for this network
-                            interface when the share level is custom.
+                            the share level is custom. Ignored if adapter_type is
+                            set to sriov. The share count for this network interface
+                            when the share level is custom.
                           type: number
                         bandwidthShareLevel:
                           description: 'The bandwidth share allocation level for the
                             network interface. One of low, normal, high, or custom.
-                            Default: normal. The bandwidth share allocation level
-                            for this interface. Can be one of low, normal, high, or
-                            custom.'
+                            Default: normal. Ignored if adapter_type is set to sriov.
+                            The bandwidth share allocation level for this interface.
+                            Can be one of low, normal, high, or custom.'
                           type: string
                         macAddress:
                           description: The MAC address of the network interface. Can
@@ -896,6 +918,10 @@ spec:
                           description: Specifies which NIC in an OVF/OVA the network_interface
                             should be associated. Only applies at creation when deploying
                             from an OVF/OVA. Mapping of network interface to OVF network.
+                          type: string
+                        physicalFunction:
+                          description: The ID of the Physical SR-IOV NIC to attach
+                            to, e.g. '0000:d8:00.0'
                           type: string
                         useStaticMac:
                           description: 'If true, the mac_address field is treated
@@ -1029,9 +1055,13 @@ spec:
                       guest operating system standby when VMware Tools is installed.'
                     type: boolean
                   sataControllerCount:
-                    description: This directly affects the amount of disks you can
-                      add to the virtual machine and the maximum disk unit number.
-                      Note that lowering this value does not remove controllers.
+                    description: 'The number of SATA controllers that the virtual
+                      machine. This directly affects the number of disks you can add
+                      to the virtual machine and the maximum disk unit number. Note
+                      that lowering this value does not remove controllers. Default:
+                      0. This directly affects the amount of disks you can add to
+                      the virtual machine and the maximum disk unit number. Note that
+                      lowering this value does not remove controllers.'
                     type: number
                   scsiBusSharing:
                     description: 'The type of SCSI bus sharing for the virtual machine
@@ -1040,9 +1070,13 @@ spec:
                       The modes are physicalSharing, virtualSharing, and noSharing.'
                     type: string
                   scsiControllerCount:
-                    description: This directly affects the amount of disks you can
-                      add to the virtual machine and the maximum disk unit number.
-                      Note that lowering this value does not remove controllers.
+                    description: 'The number of SCSI controllers on the virtual machine.
+                      This setting directly affects the number of disks you can add
+                      to the virtual machine and the maximum disk unit number. Note
+                      that lowering this value does not remove controllers. Default:
+                      1. This directly affects the amount of disks you can add to
+                      the virtual machine and the maximum disk unit number. Note that
+                      lowering this value does not remove controllers.'
                     type: number
                   scsiType:
                     description: is set to an exact match of the template's controller
@@ -1072,23 +1106,23 @@ spec:
                       be one of inherit, hostLocal, or vmDirectory.'
                     type: string
                   syncTimeWithHost:
-                    description: 'Enable the guest operating system to synchronization
+                    description: Enable the guest operating system to synchronization
                       its clock with the host when the virtual machine is powered
                       on or resumed. Requires vSphere 7.0 Update 1 and later. Requires
-                      VMware Tools to be installed. Default: false. Enable guest clock
-                      synchronization with the host. On vSphere 7.0 U1 and above,
-                      with only this setting the clock is synchronized on startup
-                      and resume. Requires VMware Tools to be installed.'
+                      VMware Tools to be installed. Enable guest clock synchronization
+                      with the host. On vSphere 7.0 U1 and above, with only this setting
+                      the clock is synchronized on startup and resume. Requires VMware
+                      Tools to be installed.
                     type: boolean
                   syncTimeWithHostPeriodically:
-                    description: 'Enable the guest operating system to periodically
+                    description: Enable the guest operating system to periodically
                       synchronize its clock with the host. Requires vSphere 7.0 Update
                       1 and later. On previous versions, setting sync_time_with_host
                       is will enable periodic synchronization. Requires VMware Tools
-                      to be installed. Default: false. Enable periodic clock synchronization
-                      with the host. Supported only on vSphere 7.0 U1 and above. On
-                      prior versions setting `sync_time_with_host` is enough for periodic
-                      synchronization. Requires VMware Tools to be installed.'
+                      to be installed. Enable periodic clock synchronization with
+                      the host. Supported only on vSphere 7.0 U1 and above. On prior
+                      versions setting `sync_time_with_host` is enough for periodic
+                      synchronization. Requires VMware Tools to be installed.
                     type: boolean
                   tags:
                     description: The IDs of any tags to attach to this resource. Please
@@ -1172,6 +1206,7 @@ spec:
                       the waiter.'
                     type: number
                 required:
+                - name
                 - resourcePoolId
                 type: object
               providerConfigRef:
@@ -1431,9 +1466,8 @@ spec:
                       virtual machine. The machine object ID from VMware vSphere.'
                     type: string
                   networkInterface:
-                    description: When deleting a network interface and VMware Tools
-                      is not running. A specification for a virtual NIC on this virtual
-                      machine.
+                    description: 'resource takes a physical_function argument: A specification
+                      for a virtual NIC on this virtual machine.'
                     items:
                       properties:
                         deviceAddress:

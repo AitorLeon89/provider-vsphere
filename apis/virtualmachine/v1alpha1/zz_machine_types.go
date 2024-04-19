@@ -47,8 +47,12 @@ type CloneObservation struct {
 
 type CloneParameters struct {
 
+	// The customization specification for the virtual machine post-clone.
+	// +kubebuilder:validation:Optional
+	CustomizationSpec []CustomizationSpecParameters `json:"customizationSpec,omitempty" tf:"customization_spec,omitempty"`
+
 	// The customization spec for this clone. This allows the user to configure the virtual machine post-clone. For more details, see virtual machine customizations.
-	// The customization spec for this clone. This allows the user to configure the virtual machine post-clone.
+	// The customization specification for the virtual machine post-clone.
 	// +kubebuilder:validation:Optional
 	Customize []CustomizeParameters `json:"customize,omitempty" tf:"customize,omitempty"`
 
@@ -73,6 +77,22 @@ type CloneParameters struct {
 
 	// The timeout, in minutes, to wait for the cloning process to complete. Default: 30 minutes.
 	// The timeout, in minutes, to wait for the virtual machine clone to complete.
+	// +kubebuilder:validation:Optional
+	Timeout *float64 `json:"timeout,omitempty" tf:"timeout,omitempty"`
+}
+
+type CustomizationSpecObservation struct {
+}
+
+type CustomizationSpecParameters struct {
+
+	// The UUID of the virtual machine.
+	// The unique identifier of the customization specification is its name and is unique per vCenter Server instance.
+	// +kubebuilder:validation:Required
+	ID *string `json:"id" tf:"id,omitempty"`
+
+	// The time, in minutes, that the provider waits for customization to complete before failing. The default is 10 minutes. Setting the value to 0 or a negative value disables the waiter.
+	// The amount of time, in minutes, to wait for guest OS customization to complete before returning with an error. Setting this value to 0 or a negative value skips the waiter. Default: 10.
 	// +kubebuilder:validation:Optional
 	Timeout *float64 `json:"timeout,omitempty" tf:"timeout,omitempty"`
 }
@@ -106,13 +126,13 @@ type CustomizeParameters struct {
 	// +kubebuilder:validation:Optional
 	LinuxOptions []LinuxOptionsParameters `json:"linuxOptions,omitempty" tf:"linux_options,omitempty"`
 
-	// When deleting a network interface and VMware Tools is not running.
+	// resource takes a physical_function argument:
 	// A specification of network interface configuration options.
 	// +kubebuilder:validation:Optional
 	NetworkInterface []NetworkInterfaceParameters `json:"networkInterface,omitempty" tf:"network_interface,omitempty"`
 
 	// The time, in minutes, that the provider waits for customization to complete before failing. The default is 10 minutes. Setting the value to 0 or a negative value disables the waiter.
-	// The amount of time, in minutes, to wait for guest OS customization to complete before returning with an error. Setting this value to 0 or a negative value skips the waiter.
+	// The amount of time, in minutes, to wait for guest OS customization to complete before returning with an error. Setting this value to 0 or a negative value skips the waiter. Default: 10.
 	// +kubebuilder:validation:Optional
 	Timeout *float64 `json:"timeout,omitempty" tf:"timeout,omitempty"`
 
@@ -277,12 +297,12 @@ type MachineNetworkInterfaceObservation struct {
 
 type MachineNetworkInterfaceParameters struct {
 
-	// The network interface type. One of e1000, e1000e, or vmxnet3. Default: vmxnet3.
-	// The controller type. Can be one of e1000, e1000e, vmxnet3, or vrdma.
+	// The network interface type. One of e1000, e1000e, sriov, or vmxnet3. Default: vmxnet3.
+	// The controller type. Can be one of e1000, e1000e, sriov, vmxnet3, or vrdma.
 	// +kubebuilder:validation:Optional
 	AdapterType *string `json:"adapterType,omitempty" tf:"adapter_type,omitempty"`
 
-	// The upper bandwidth limit of the network interface, in Mbits/sec. The default is no limit.
+	// The upper bandwidth limit of the network interface, in Mbits/sec. The default is no limit. Ignored if adapter_type is set to sriov.
 	// The upper bandwidth limit of this network interface, in Mbits/sec.
 	// +kubebuilder:validation:Optional
 	BandwidthLimit *float64 `json:"bandwidthLimit,omitempty" tf:"bandwidth_limit,omitempty"`
@@ -292,12 +312,12 @@ type MachineNetworkInterfaceParameters struct {
 	// +kubebuilder:validation:Optional
 	BandwidthReservation *float64 `json:"bandwidthReservation,omitempty" tf:"bandwidth_reservation,omitempty"`
 
-	// The share count for the network interface when the share level is custom.
+	// The share count for the network interface when the share level is custom. Ignored if adapter_type is set to sriov.
 	// The share count for this network interface when the share level is custom.
 	// +kubebuilder:validation:Optional
 	BandwidthShareCount *float64 `json:"bandwidthShareCount,omitempty" tf:"bandwidth_share_count,omitempty"`
 
-	// The bandwidth share allocation level for the network interface. One of low, normal, high, or custom. Default: normal.
+	// The bandwidth share allocation level for the network interface. One of low, normal, high, or custom. Default: normal. Ignored if adapter_type is set to sriov.
 	// The bandwidth share allocation level for this interface. Can be one of low, normal, high, or custom.
 	// +kubebuilder:validation:Optional
 	BandwidthShareLevel *string `json:"bandwidthShareLevel,omitempty" tf:"bandwidth_share_level,omitempty"`
@@ -316,6 +336,10 @@ type MachineNetworkInterfaceParameters struct {
 	// Mapping of network interface to OVF network.
 	// +kubebuilder:validation:Optional
 	OvfMapping *string `json:"ovfMapping,omitempty" tf:"ovf_mapping,omitempty"`
+
+	// The ID of the Physical SR-IOV NIC to attach to, e.g. '0000:d8:00.0'
+	// +kubebuilder:validation:Optional
+	PhysicalFunction *string `json:"physicalFunction,omitempty" tf:"physical_function,omitempty"`
 
 	// If true, the mac_address field is treated as a static MAC address and set accordingly. Setting this to true requires mac_address to be set. Default: false.
 	// If true, the mac_address field is treated as a static MAC address and set accordingly.
@@ -356,7 +380,7 @@ type MachineObservation struct {
 	// The machine object ID from VMware vSphere.
 	Moid *string `json:"moid,omitempty" tf:"moid,omitempty"`
 
-	// When deleting a network interface and VMware Tools is not running.
+	// resource takes a physical_function argument:
 	// A specification for a virtual NIC on this virtual machine.
 	// +kubebuilder:validation:Optional
 	NetworkInterface []MachineNetworkInterfaceObservation `json:"networkInterface,omitempty" tf:"network_interface,omitempty"`
@@ -497,11 +521,6 @@ type MachineParameters struct {
 	// +kubebuilder:validation:Optional
 	EnableLogging *bool `json:"enableLogging,omitempty" tf:"enable_logging,omitempty"`
 
-	// The EPT/RVI (hardware memory virtualization) setting for the virtual machine. One of automatic, on, or off. Default: automatic.
-	// The EPT/RVI (hardware memory virtualization) setting for this virtual machine. Can be one of automatic, on, or off.
-	// +kubebuilder:validation:Optional
-	EptRviMode *string `json:"eptRviMode,omitempty" tf:"ept_rvi_mode,omitempty"`
-
 	// Extra configuration data for the virtual machine. Can be used to supply advanced parameters not normally in configuration, such as instance metadata and userdata.
 	// Extra configuration data for this virtual machine. Can be used to supply advanced parameters not normally in configuration, such as instance metadata, or configuration data for OVF images.
 	// +kubebuilder:validation:Optional
@@ -532,20 +551,15 @@ type MachineParameters struct {
 	// +kubebuilder:validation:Optional
 	GuestID *string `json:"guestId,omitempty" tf:"guest_id,omitempty"`
 
-	// The hardware version number. Valid range is from 4 to 19. The hardware version cannot be downgraded. See virtual machine hardware compatibility for more information.
+	// The hardware version number. Valid range is from 4 to 21. The hardware version cannot be downgraded. See virtual machine hardware versions and compatibility for more information on supported settings.
 	// The hardware version for the virtual machine.
 	// +kubebuilder:validation:Optional
 	HardwareVersion *float64 `json:"hardwareVersion,omitempty" tf:"hardware_version,omitempty"`
 
-	// The managed object reference ID of a host on which to place the virtual machine. See the section on virtual machine migration for more information on modifying this value. When using a vSphere cluster, if a host_system_id is not supplied, vSphere will select a host in the cluster to place the virtual machine, according to any defaults or vSphere DRS placement policies.
+	// option.
 	// The ID of an optional host system to pin the virtual machine to.
 	// +kubebuilder:validation:Optional
 	HostSystemID *string `json:"hostSystemId,omitempty" tf:"host_system_id,omitempty"`
-
-	// The hardware virtualization (non-nested) setting for the virtual machine. One of hvAuto, hvOn, or hvOff. Default: hvAuto.
-	// The (non-nested) hardware virtualization setting for this virtual machine. Can be one of hvAuto, hvOn, or hvOff.
-	// +kubebuilder:validation:Optional
-	HvMode *string `json:"hvMode,omitempty" tf:"hv_mode,omitempty"`
 
 	// The number of IDE controllers that the virtual machine. This directly affects the number of disks you can add to the virtual machine and the maximum disk unit number. Note that lowering this value does not remove controllers. Default: 2. This directly affects the amount of disks you can add to the virtual machine and the maximum disk unit number. Note that lowering this value does not remove controllers.
 	// +kubebuilder:validation:Optional
@@ -581,6 +595,10 @@ type MachineParameters struct {
 	// +kubebuilder:validation:Optional
 	MemoryReservation *float64 `json:"memoryReservation,omitempty" tf:"memory_reservation,omitempty"`
 
+	// If set true, memory resource reservation for this virtual machine will always be equal to the virtual machine's memory size;increases in memory size will be rejected when a corresponding reservation increase is not possible. This feature may only be enabled if it is currently possible to reserve all of the virtual machine's memory.
+	// +kubebuilder:validation:Optional
+	MemoryReservationLockedToMax *bool `json:"memoryReservationLockedToMax,omitempty" tf:"memory_reservation_locked_to_max,omitempty"`
+
 	// The number of memory shares allocated to the virtual machine when the memory_share_level is custom.
 	// The amount of shares to allocate to memory for a custom share level.
 	// +kubebuilder:validation:Optional
@@ -596,12 +614,17 @@ type MachineParameters struct {
 	// +kubebuilder:validation:Optional
 	MigrateWaitTimeout *float64 `json:"migrateWaitTimeout,omitempty" tf:"migrate_wait_timeout,omitempty"`
 
+	// The name of the virtual machine.
+	// The name of this virtual machine.
+	// +kubebuilder:validation:Required
+	Name *string `json:"name" tf:"name,omitempty"`
+
 	// Enable nested hardware virtualization on the virtual machine, facilitating nested virtualization in the guest operating system. Default: false.
 	// Enable nested hardware virtualization on this virtual machine, facilitating nested virtualization in the guest.
 	// +kubebuilder:validation:Optional
 	NestedHvEnabled *bool `json:"nestedHvEnabled,omitempty" tf:"nested_hv_enabled,omitempty"`
 
-	// When deleting a network interface and VMware Tools is not running.
+	// resource takes a physical_function argument:
 	// A specification for a virtual NIC on this virtual machine.
 	// +kubebuilder:validation:Optional
 	NetworkInterface []MachineNetworkInterfaceParameters `json:"networkInterface,omitempty" tf:"network_interface,omitempty"`
@@ -666,7 +689,7 @@ type MachineParameters struct {
 	// +kubebuilder:validation:Optional
 	RunToolsScriptsBeforeGuestStandby *bool `json:"runToolsScriptsBeforeGuestStandby,omitempty" tf:"run_tools_scripts_before_guest_standby,omitempty"`
 
-	// This directly affects the amount of disks you can add to the virtual machine and the maximum disk unit number. Note that lowering this value does not remove controllers.
+	// The number of SATA controllers that the virtual machine. This directly affects the number of disks you can add to the virtual machine and the maximum disk unit number. Note that lowering this value does not remove controllers. Default: 0. This directly affects the amount of disks you can add to the virtual machine and the maximum disk unit number. Note that lowering this value does not remove controllers.
 	// +kubebuilder:validation:Optional
 	SataControllerCount *float64 `json:"sataControllerCount,omitempty" tf:"sata_controller_count,omitempty"`
 
@@ -675,7 +698,7 @@ type MachineParameters struct {
 	// +kubebuilder:validation:Optional
 	ScsiBusSharing *string `json:"scsiBusSharing,omitempty" tf:"scsi_bus_sharing,omitempty"`
 
-	// This directly affects the amount of disks you can add to the virtual machine and the maximum disk unit number. Note that lowering this value does not remove controllers.
+	// The number of SCSI controllers on the virtual machine. This setting directly affects the number of disks you can add to the virtual machine and the maximum disk unit number. Note that lowering this value does not remove controllers. Default: 1. This directly affects the amount of disks you can add to the virtual machine and the maximum disk unit number. Note that lowering this value does not remove controllers.
 	// +kubebuilder:validation:Optional
 	ScsiControllerCount *float64 `json:"scsiControllerCount,omitempty" tf:"scsi_controller_count,omitempty"`
 
@@ -699,12 +722,12 @@ type MachineParameters struct {
 	// +kubebuilder:validation:Optional
 	SwapPlacementPolicy *string `json:"swapPlacementPolicy,omitempty" tf:"swap_placement_policy,omitempty"`
 
-	// Enable the guest operating system to synchronization its clock with the host when the virtual machine is powered on or resumed. Requires vSphere 7.0 Update 1 and later. Requires VMware Tools to be installed. Default: false.
+	// Enable the guest operating system to synchronization its clock with the host when the virtual machine is powered on or resumed. Requires vSphere 7.0 Update 1 and later. Requires VMware Tools to be installed.
 	// Enable guest clock synchronization with the host. On vSphere 7.0 U1 and above, with only this setting the clock is synchronized on startup and resume. Requires VMware Tools to be installed.
 	// +kubebuilder:validation:Optional
 	SyncTimeWithHost *bool `json:"syncTimeWithHost,omitempty" tf:"sync_time_with_host,omitempty"`
 
-	// Enable the guest operating system to periodically synchronize its clock with the host. Requires vSphere 7.0 Update 1 and later. On previous versions, setting sync_time_with_host is will enable periodic synchronization. Requires VMware Tools to be installed. Default: false.
+	// Enable the guest operating system to periodically synchronize its clock with the host. Requires vSphere 7.0 Update 1 and later. On previous versions, setting sync_time_with_host is will enable periodic synchronization. Requires VMware Tools to be installed.
 	// Enable periodic clock synchronization with the host. Supported only on vSphere 7.0 U1 and above. On prior versions setting `sync_time_with_host` is enough for periodic synchronization. Requires VMware Tools to be installed.
 	// +kubebuilder:validation:Optional
 	SyncTimeWithHostPeriodically *bool `json:"syncTimeWithHostPeriodically,omitempty" tf:"sync_time_with_host_periodically,omitempty"`

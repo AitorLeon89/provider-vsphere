@@ -45,6 +45,7 @@ spec:
       size: 1
     guestId: ubuntu64Guest
     memory: 1024
+    name: terraform-virtual-machine-test
     networkInterface:
     - networkId: ${data.vsphere_network.network.id}
     numCpus: 2

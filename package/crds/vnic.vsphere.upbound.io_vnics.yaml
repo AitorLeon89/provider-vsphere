@@ -78,7 +78,7 @@ spec:
                     type: string
                   ipv4:
                     description: IPv4 settings. Either this or ipv6 needs to be set.
-                      See  ipv4 options below.
+                      See IPv4 options below.
                     items:
                       properties:
                         dhcp:
@@ -102,7 +102,7 @@ spec:
                     type: array
                   ipv6:
                     description: IPv6 settings. Either this or ipv6 needs to be set.
-                      See  ipv6 options below.
+                      See IPv6 options below.
                     items:
                       properties:
                         addresses:
@@ -133,18 +133,26 @@ spec:
                     description: MTU of the interface. MTU of the interface.
                     type: number
                   netstack:
-                    description: 'TCP/IP stack setting for this interface. Possible
-                      values are ''defaultTcpipStack'', ''vmotion'', ''vSphereProvisioning''.
+                    description: TCP/IP stack setting for this interface. Possible
+                      values are defaultTcpipStack``, 'vmotion', 'vSphereProvisioning'.
                       Changing this will force the creation of a new interface since
-                      it''s not possible to change the stack once it gets created.
-                      (Default: defaultTcpipStack) TCP/IP stack setting for this interface.
-                      Possible values are ''defaultTcpipStack'', ''vmotion'', ''provisioning'''
+                      it's not possible to change the stack once it gets created.
+                      (Default:defaultTcpipStack`) TCP/IP stack setting for this interface.
+                      Possible values are 'defaultTcpipStack', 'vmotion', 'provisioning'
                     type: string
                   portgroup:
                     description: Portgroup to attach the nic to. Do not set if you
                       set distributed_switch_port. portgroup to attach the nic to.
                       Do not set if you set distributed_switch_port.
                     type: string
+                  services:
+                    description: Enabled services setting for this interface. Currently
+                      support values are vmotion, management, and vsan. Enabled services
+                      setting for this interface. Current possible values are 'vmotion',
+                      'management' and 'vsan'
+                    items:
+                      type: string
+                    type: array
                 required:
                 - host
                 type: object

@@ -65,6 +65,7 @@ spec:
       size: 20
     guestId: other3xLinux64Guest
     memory: 2048
+    name: terraform-test1
     networkInterface:
     - networkId: ${data.vsphere_network.network.id}
     numCpus: 2
@@ -88,6 +89,7 @@ spec:
       size: 20
     guestId: other3xLinux64Guest
     memory: 2048
+    name: terraform-test2
     networkInterface:
     - networkId: ${data.vsphere_network.network.id}
     numCpus: 2

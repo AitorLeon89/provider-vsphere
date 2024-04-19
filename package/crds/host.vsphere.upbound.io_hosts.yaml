@@ -68,8 +68,8 @@ spec:
                   cluster:
                     description: 'The ID of the Compute Cluster this host should be
                       added to. This should not be set if datacenter is set. Conflicts
-                      with: cluster. ID of the vSphere cluster the host will belong
-                      to.'
+                      with: cluster_managed. ID of the vSphere cluster the host will
+                      belong to.'
                     type: string
                   clusterManaged:
                     description: 'Can be set to true if compute cluster membership

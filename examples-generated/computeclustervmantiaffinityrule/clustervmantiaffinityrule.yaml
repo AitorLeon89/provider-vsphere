@@ -31,6 +31,7 @@ spec:
       size: 20
     guestId: otherLinux64Guest
     memory: 1024
+    name: foo-${count.index}
     networkInterface:
     - networkId: ${data.vsphere_network.network.id}
     numCpus: 1

@@ -1,4 +1,4 @@
-name: hashicorp/vsphere
+name: AitorLeon89/vsphere
 resources:
     Entity Permissions:
         subCategory: Security
@@ -49,6 +49,7 @@ resources:
                 datacenter_id: data.vsphere_datacenter.datacenter.id
         argumentDocs:
             cache: '- The canonical name of the disk to use for vSAN cache.'
+            component: '- A custom component to add to the base image. TODO - add link to offline depot resource docs'
             custom_attributes: |-
                 - (Optional) A map of custom attribute ids to attribute
                 value strings to set for the datastore cluster. See
@@ -94,7 +95,9 @@ resources:
                 - (Optional) Enable scalable shares for all
                 resource pools in the cluster. Can be one of disabled or
                 scaleCpuAndMemoryShares. Default: disabled.
+            esx_version: '- The ESXi version which will be used as a base for the image. See host_base_images.'
             failoverHosts: .
+            fault_domain: '- The configuration for single fault domain.'
             folder: |-
                 - (Optional) The relative path to a folder to put this cluster in.
                 This is a path relative to the datacenter you are deploying the cluster to.
@@ -253,6 +256,8 @@ resources:
             host_cluster_exit_timeout: |-
                 - The timeout, in seconds, for each host maintenance
                 mode operation when removing hosts from a cluster. Default: 3600 seconds (1 hour).
+            host_ids: '- The managed object IDs of the hosts to put in the fault domain.'
+            host_image: '- (Optional) Enables vLCM on the cluster and applies an ESXi image with the provided configuration.'
             host_managed: |-
                 - (Optional) Can be set to true if compute cluster
                 membership will be managed through the host resource rather than the
@@ -261,7 +266,10 @@ resources:
                 - (Optional) The managed object IDs of
                 the hosts to put in the cluster. Conflicts with: host_managed.
             id: ': The managed object ID of the cluster.'
+            key: '- The identifier of the component'
             name: '- (Required) The name of the cluster.'
+            preferred_fault_domain_host_ids: '- The managed object IDs of the hosts to put in the first fault domain.'
+            preferred_fault_domain_name: '- (Optional) The name of first fault domain. Default is Preferred.'
             proactive_ha_automation_level: |-
                 - (Optional) Determines how the host
                 quarantine, maintenance mode, or virtual machine migration recommendations
@@ -295,11 +303,14 @@ resources:
                 attribute of the
                 vsphere_virtual_machine resource.
             resourcePercentage: .
+            secondary_fault_domain_host_ids: '- The managed object IDs of the hosts to put in the second fault domain.'
+            secondary_fault_domain_name: '- (Optional) The name of second fault domain. Default is Secondary.'
             slotPolicy: .
             storage: '- An array of disk canonical names for vSAN storage.'
             tags: |-
                 - (Optional) The IDs of any tags to attach to this resource. See
                 here for a reference on how to apply tags.
+            version: '- The version of the component'
             vsan_compression_enabled: |-
                 - (Optional) Enables vSAN compression on the
                 cluster.
@@ -320,6 +331,8 @@ resources:
                 minutes for data-in-transit encryption. The valid rekey interval is 30 to
                 10800 (feature defaults to 1440). Conflicts with vsan_remote_datastore_ids.
             vsan_enabled: '- (Optional) Enables vSAN on the cluster.'
+            vsan_esa_enabled: '- (Optional) Enables vSAN ESA on the cluster.'
+            vsan_fault_domains: '- (Optional) Configurations of vSAN fault domains.'
             vsan_network_diagnostic_mode_enabled: |-
                 - (Optional) Enables network
                 diagnostic mode for vSAN performance service on the cluster.
@@ -331,10 +344,14 @@ resources:
                 mounted to this cluster. Conflicts with vsan_dit_encryption_enabled and
                 vsan_dit_rekey_interval, i.e., vSAN HCI Mesh feature cannot be enabled with
                 data-in-transit encryption feature at the same time.
-            vsan_unmap_enabled: '- (Optional) Enables vSAN unmap on the cluster.'
+            vsan_stretched_cluster: '- (Optional) Configurations of vSAN stretched cluster.'
+            vsan_unmap_enabled: |-
+                - (Optional) Enables vSAN unmap on the cluster.
+                You must explicitly enable vSAN unmap when you enable vSAN ESA on the cluster.
             vsan_verbose_mode_enabled: |-
                 - (Optional) Enables verbose mode for vSAN
                 performance service on the cluster.
+            witness_node: '- The managed object IDs of the host selected as witness node when enable stretched cluster.'
         importStatements: []
     vsphere_compute_cluster_host_group:
         subCategory: Host and Cluster Management
@@ -1724,6 +1741,44 @@ resources:
                 vm for virtual machine folders, datastore for datastore folders, and
                 network for network folders. Forces a new resource if changed.
         importStatements: []
+    vsphere_guest_os_customization:
+        subCategory: Virtual Machine
+        description: Provides a VMware vSphere customization specification resource. This can be used to apply a customization specification to the guest operating system of a virtual machine after cloning.
+        name: vsphere_guest_os_customization
+        title: vsphere_guest_os_customization
+        examples:
+            - name: windows_customization
+              manifest: |-
+                {
+                  "name": "windows-spec",
+                  "spec": [
+                    {
+                      "windows_options": [
+                        {
+                          "admin_password": "VMware1!",
+                          "auto_logon": false,
+                          "auto_logon_count": 0,
+                          "computer_name": "windows",
+                          "run_once_command_list": [
+                            "command-1",
+                            "command-2"
+                          ],
+                          "time_zone": 4,
+                          "workgroup": "workgroup"
+                        }
+                      ]
+                    }
+                  ],
+                  "type": "Windows"
+                }
+        argumentDocs:
+            change_version: '- The number of last changed version to the customization specification.'
+            description: '- (Optional) The description for the customization specification.'
+            last_update_time: '- The time of last modification to the customization specification.'
+            name: '- (Required) The name of the customization specification is the unique identifier per vCenter Server instance.'
+            spec: '- Container object for the Guest OS properties about to be customized . See virtual machine customizations'
+            type: '- (Required) The type of customization specification: One among: Windows, Linux.'
+        importStatements: []
     vsphere_ha_vm_override:
         subCategory: Host and Cluster Management
         description: Provides a VMware vSphere HA virtual machine override resource. This can be used to override high availability settings in a cluster.
@@ -1870,7 +1925,7 @@ resources:
             cluster: |-
                 - (Optional) The ID of the Compute Cluster this host should
                 be added to. This should not be set if datacenter is set. Conflicts with:
-                cluster.
+                cluster_managed.
             cluster_managed: |-
                 - (Optional) Can be set to true if compute cluster
                 membership will be managed through the compute_cluster resource rather
@@ -2231,6 +2286,18 @@ resources:
                 - Total additional storage space, in megabytes,
                 potentially used by all virtual machines on this datastore.
             url: '- The unique locator for the datastore.'
+        importStatements: []
+    vsphere_offline_software_depot:
+        subCategory: Lifecycle
+        description: Provides a VMware vSphere offline software depot resource..
+        name: vsphere_offline_software_depot
+        title: vsphere_offline_software_depot
+        argumentDocs:
+            component: '- The list of custom components in the depot.'
+            display_name: '- The name of the component. Useful for easier identification.'
+            key: '- The identifier of the component.'
+            location: '- The URL where the depot source is hosted.'
+            version: '- The list of available versions of the component.'
         importStatements: []
     vsphere_resource_pool:
         subCategory: Host and Cluster Management
@@ -3122,6 +3189,25 @@ resources:
             - name: vm
               manifest: |-
                 {
+                  "host_system_id": "${data.vsphere_host.host.id}",
+                  "memory": "${var.memory}",
+                  "memory_reservation": "${var.memory}",
+                  "network_interface": [
+                    {
+                      "adapter_type": "sriov",
+                      "network_id": "${data.vsphere_network.network.id}",
+                      "physical_function": "0000:3b:00.1"
+                    }
+                  ]
+                }
+              references:
+                host_system_id: data.vsphere_host.host.id
+                memory: var.memory
+                memory_reservation: var.memory
+                network_interface.network_id: data.vsphere_network.network.id
+            - name: vm
+              manifest: |-
+                {
                   "cdrom": [
                     {
                       "datastore_id": "${data.vsphere_datastore.iso_datastore.id}",
@@ -3317,6 +3403,7 @@ resources:
             "1": SCSI controller, and all disks in the template should reside on the single, primary controller.
             alternate_guest_name: '- (Optional) The guest name for the operating system when guest_id is otherGuest or otherGuest64.'
             annotation: '- (Optional) A user-provided description of the virtual machine.'
+            bandwidth_*: options on the network interface are not permitted.
             boot_delay: '- (Optional) The number of milliseconds to wait before starting the boot sequence. The default is no delay.'
             boot_retry_delay: '- (Optional) The number of milliseconds to wait before retrying the boot sequence. This option is only valid if boot_retry_enabled is true. Default: 10000 (10 seconds).'
             boot_retry_enabled: '- (Optional) If set to true, a virtual machine that fails to boot will try again after the delay defined in boot_retry_delay. Default: false.'
@@ -3369,12 +3456,11 @@ resources:
             efi_secure_boot_enabled: '- (Optional) Use this option to enable EFI secure boot when the firmware type is set to is efi. Default: false.'
             enable_disk_uuid: '- (Optional) Expose the UUIDs of attached virtual disks to the virtual machine, allowing access to them in the guest. Default: false.'
             enable_logging: '- (Optional) Enable logging of virtual machine events to a log file stored in the virtual machine directory. Default: false.'
-            ept_rvi_mode: '- (Optional) The EPT/RVI (hardware memory virtualization) setting for the virtual machine. One of automatic, on, or off. Default: automatic.'
             extra_config: '- (Optional) Extra configuration data for the virtual machine. Can be used to supply advanced parameters not normally in configuration, such as instance metadata and userdata.'
             extra_config.firmware: '- (Optional) The firmware for the virtual machine. One of bios or efi.'
             extra_config.folder: '- (Optional) The path to the virtual machine folder in which to place the virtual machine, relative to the datacenter path (/<datacenter-name>/vm).  For example, /dc-01/vm/foo'
             extra_config.guest_id: '- (Optional) The guest ID for the operating system type. For a full list of possible values, see here. Default: otherGuest64.'
-            extra_config.hardware_version: '- (Optional) The hardware version number. Valid range is from 4 to 19. The hardware version cannot be downgraded. See virtual machine hardware compatibility for more information.'
+            extra_config.hardware_version: '- (Optional) The hardware version number. Valid range is from 4 to 21. The hardware version cannot be downgraded. See virtual machine hardware versions and compatibility for more information on supported settings.'
             extra_config.host_system_id: '- (Optional) The managed object reference ID of a host on which to place the virtual machine. See the section on virtual machine migration for more information on modifying this value. When using a vSphere cluster, if a host_system_id is not supplied, vSphere will select a host in the cluster to place the virtual machine, according to any defaults or vSphere DRS placement policies.'
             extra_config.name: '- (Required) The name of the virtual machine.'
             extra_config.network_interface: '- (Required) A specification for a virtual NIC on the virtual machine. See network interface options for more information.'
@@ -3390,7 +3476,7 @@ resources:
             extra_config_reboot_required: '- (Optional) Allow the virtual machine to be rebooted when a change to extra_config occurs. Default: true.'
             force_power_off: '- (Optional) If a guest shutdown failed or times out while updating or destroying (see shutdown_wait_timeout), force the power-off of the virtual machine. Default: true.'
             guest_ip_addresses: '- The current list of IP addresses on this machine, including the value of default_ip_address. If VMware Tools is not running on the virtual machine, or if the virtul machine is powered off, this list will be empty.'
-            hv_mode: '- (Optional) The hardware virtualization (non-nested) setting for the virtual machine. One of hvAuto, hvOn, or hvOff. Default: hvAuto.'
+            host_system_id: option.
             id: '- The UUID of the virtual machine.'
             ide_controller_count: '- (Optional) The number of IDE controllers that the virtual machine. This directly affects the number of disks you can add to the virtual machine and the maximum disk unit number. Note that lowering this value does not remove controllers. Default: 2.'
             ignored_guest_ips: '- (Optional) List of IP addresses and CIDR networks to ignore while waiting for an available IP address using either of the waiters. Any IP addresses in this list will be ignored so that the waiter will continue to wait for a valid IP address. Default: [].'
@@ -3414,12 +3500,12 @@ resources:
             migrate_wait_timeout: '- (Optional) The amount of time, in minutes, to wait for a virtual machine migration to complete before failing. Default: 10 minutes. See the section on virtual machine migration for more information.'
             moid: ': The managed object reference ID of the created virtual machine.'
             nested_hv_enabled: '- (Optional) Enable nested hardware virtualization on the virtual machine, facilitating nested virtualization in the guest operating system. Default: false.'
-            network_interface: '- When deleting a network interface and VMware Tools is not running.'
-            network_interface.adapter_type: '- (Optional) The network interface type. One of e1000, e1000e, or vmxnet3. Default: vmxnet3.'
-            network_interface.bandwidth_limit: '- (Optional) The upper bandwidth limit of the network interface, in Mbits/sec. The default is no limit.'
+            network_interface: 'sub-resource takes a physical_function argument:'
+            network_interface.adapter_type: '- (Optional) The network interface type. One of e1000, e1000e, sriov, or vmxnet3. Default: vmxnet3.'
+            network_interface.bandwidth_limit: '- (Optional) The upper bandwidth limit of the network interface, in Mbits/sec. The default is no limit. Ignored if adapter_type is set to sriov.'
             network_interface.bandwidth_reservation: '- (Optional) The bandwidth reservation of the network interface, in Mbits/sec. The default is no reservation.'
-            network_interface.bandwidth_share_count: '- (Optional) The share count for the network interface when the share level is custom.'
-            network_interface.bandwidth_share_level: '- (Optional) The bandwidth share allocation level for the network interface. One of low, normal, high, or custom. Default: normal.'
+            network_interface.bandwidth_share_count: '- (Optional) The share count for the network interface when the share level is custom. Ignored if adapter_type is set to sriov.'
+            network_interface.bandwidth_share_level: '- (Optional) The bandwidth share allocation level for the network interface. One of low, normal, high, or custom. Default: normal. Ignored if adapter_type is set to sriov.'
             network_interface.dns_domain: '- (Optional) DNS search domain for the network interface. Used by Windows guest operating systems, but ignored by Linux distribution guest operating systems. For Linux, please refer to the section on the global DNS settings.'
             network_interface.dns_server_list: '- (Optional) DNS servers for the network interface. Used by Windows guest operating systems, but ignored by Linux distribution guest operating systems. For Linux, please refer to the section on the global DNS settings.'
             network_interface.ipv4_address: '- (Optional) The IPv4 address assigned to the network adapter. If blank or not included, DHCP is used.'
@@ -3448,12 +3534,15 @@ resources:
             run_tools_scripts_before_guest_reboot: '- (Optional) Enable pre-reboot scripts to run when VMware Tools is installed. Default: false.'
             run_tools_scripts_before_guest_shutdown: '- (Optional) Enable pre-shutdown scripts to run when VMware Tools is installed. Default: true.'
             run_tools_scripts_before_guest_standby: '- (Optional) Enable pre-standby scripts to run when VMware Tools is installed. Default: true.'
+            sata_controller_count: '- (Optional) The number of SATA controllers that the virtual machine. This directly affects the number of disks you can add to the virtual machine and the maximum disk unit number. Note that lowering this value does not remove controllers. Default: 0.'
+            scsi_controller_count: '- (Optional) The number of SCSI controllers on the virtual machine. This setting directly affects the number of disks you can add to the virtual machine and the maximum disk unit number. Note that lowering this value does not remove controllers. Default: 1.'
             scsi_type: is set to an exact match of the template's controller set. For maximum compatibility, make sure the SCSI controllers on the source template are all the same type.
             shutdown_wait_timeout: '- (Optional) The amount of time, in minutes, to wait for a graceful guest shutdown when making necessary updates to the virtual machine. If force_power_off is set to true, the virtual machine will be forced to power-off after the timeout, otherwise an error is returned. Default: 3 minutes.'
             size: of a virtual disk must be at least the same size as its counterpart disk in the source template.
+            sriov: .
             swap_placement_policy: '- (Optional) The swap file placement policy for the virtual machine. One of inherit, hostLocal, or vmDirectory. Default: inherit.'
-            sync_time_with_host: '- (Optional) Enable the guest operating system to synchronization its clock with the host when the virtual machine is powered on or resumed. Requires vSphere 7.0 Update 1 and later. Requires VMware Tools to be installed. Default: false.'
-            sync_time_with_host_periodically: '- (Optional) Enable the guest operating system to periodically synchronize its clock with the host. Requires vSphere 7.0 Update 1 and later. On previous versions, setting sync_time_with_host is will enable periodic synchronization. Requires VMware Tools to be installed. Default: false.'
+            sync_time_with_host: '- (Optional) Enable the guest operating system to synchronization its clock with the host when the virtual machine is powered on or resumed. Requires vSphere 7.0 Update 1 and later. Requires VMware Tools to be installed.'
+            sync_time_with_host_periodically: '- (Optional) Enable the guest operating system to periodically synchronize its clock with the host. Requires vSphere 7.0 Update 1 and later. On previous versions, setting sync_time_with_host is will enable periodic synchronization. Requires VMware Tools to be installed.'
             terraform apply: run which will remove the setting for known disks. This process safeguards against naming or accounting mistakes in the disk configuration.
             timeout: '- (Optional) The time, in minutes, that the provider waits for customization to complete before failing. The default is 10 minutes. Setting the value to 0 or a negative value disables the waiter.'
             tools_upgrade_policy: '- (Optional) Enable automatic upgrade of the VMware Tools version when the virtual machine is rebooted. If necessary, VMware Tools is upgraded to the latest version supported by the host on which the virtual machine is running. Requires VMware Tools to be installed. One of manual or upgradeAtPowerCycle. Default: manual.'
@@ -3718,7 +3807,11 @@ resources:
                       "dhcp": true
                     }
                   ],
-                  "portgroup": "${vsphere_host_port_group.p1.name}"
+                  "portgroup": "${vsphere_host_port_group.p1.name}",
+                  "services": [
+                    "vsan",
+                    "management"
+                  ]
                 }
               references:
                 host: data.vsphere_host.h1.id
@@ -3754,11 +3847,12 @@ resources:
             gw: '- IP address of the default gateway, if DHCP is not set.'
             id: '- The ID of the vNic.'
             ip: '- Address of the interface, if DHCP is not set.'
-            ipv4: '- (Optional) IPv4 settings. Either this or ipv6 needs to be set. See  ipv4 options below.'
-            ipv6: '- (Optional) IPv6 settings. Either this or ipv6 needs to be set. See  ipv6 options below.'
+            ipv4: '- (Optional) IPv4 settings. Either this or ipv6 needs to be set. See IPv4 options below.'
+            ipv6: '- (Optional) IPv6 settings. Either this or ipv6 needs to be set. See IPv6 options below.'
             mac: '- (Optional) MAC address of the interface.'
             mtu: '- (Optional) MTU of the interface.'
             netmask: '- Netmask of the interface, if DHCP is not set.'
-            netstack: '- (Optional)  TCP/IP stack setting for this interface. Possible values are ''defaultTcpipStack'', ''vmotion'', ''vSphereProvisioning''. Changing this will force the creation of a new interface since it''s not possible to change the stack once it gets created. (Default: defaultTcpipStack)'
+            netstack: '- (Optional) TCP/IP stack setting for this interface. Possible values are defaultTcpipStack``, ''vmotion'', ''vSphereProvisioning''. Changing this will force the creation of a new interface since it''s not possible to change the stack once it gets created. (Default:defaultTcpipStack`)'
             portgroup: '- (Optional) Portgroup to attach the nic to. Do not set if you set distributed_switch_port.'
+            services: '- (Optional) Enabled services setting for this interface. Currently support values are vmotion, management, and vsan.'
         importStatements: []

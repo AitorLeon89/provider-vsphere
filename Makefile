@@ -4,13 +4,13 @@
 PROJECT_NAME ?= provider-vsphere
 PROJECT_REPO ?= github.com/AitorLeon89/provider-vsphere
 
-export TERRAFORM_VERSION ?= 1.3.3
+export TERRAFORM_VERSION ?= 1.7.5
 
-export TERRAFORM_PROVIDER_SOURCE ?= hashicorp/vsphere
-export TERRAFORM_PROVIDER_REPO ?= https://github.com/hashicorp/terraform-provider-vsphere
-export TERRAFORM_PROVIDER_VERSION ?= 2.3.1
+export TERRAFORM_PROVIDER_SOURCE ?= AitorLeon89/vsphere
+export TERRAFORM_PROVIDER_REPO ?= https://github.com/AitorLeon89/terraform-provider-vsphere
+export TERRAFORM_PROVIDER_VERSION ?= 2.7.2
 export TERRAFORM_PROVIDER_DOWNLOAD_NAME ?= terraform-provider-vsphere
-export TERRAFORM_NATIVE_PROVIDER_BINARY ?= terraform-provider-vsphere_v2.3.1_x5
+export TERRAFORM_NATIVE_PROVIDER_BINARY ?= terraform-provider-vsphere_v2.7.2
 export TERRAFORM_DOCS_PATH ?= website/docs/r
 
 PLATFORMS ?= linux_amd64 linux_arm64
@@ -112,7 +112,7 @@ $(TERRAFORM_PROVIDER_SCHEMA): $(TERRAFORM)
 	@$(INFO) generating provider schema for $(TERRAFORM_PROVIDER_SOURCE) $(TERRAFORM_PROVIDER_VERSION)
 	@mkdir -p $(TERRAFORM_WORKDIR)
 	@echo '{"terraform":[{"required_providers":[{"provider":{"source":"'"$(TERRAFORM_PROVIDER_SOURCE)"'","version":"'"$(TERRAFORM_PROVIDER_VERSION)"'"}}],"required_version":"'"$(TERRAFORM_VERSION)"'"}]}' > $(TERRAFORM_WORKDIR)/main.tf.json
-	@$(TERRAFORM) -chdir=$(TERRAFORM_WORKDIR) init > $(TERRAFORM_WORKDIR)/terraform-logs.txt 2>&1
+	@$(TERRAFORM) -chdir=$(TERRAFORM_WORKDIR) init -upgrade > $(TERRAFORM_WORKDIR)/terraform-logs.txt 2>&1
 	@$(TERRAFORM) -chdir=$(TERRAFORM_WORKDIR) providers schema -json=true > $(TERRAFORM_PROVIDER_SCHEMA) 2>> $(TERRAFORM_WORKDIR)/terraform-logs.txt
 	@$(OK) generating provider schema for $(TERRAFORM_PROVIDER_SOURCE) $(TERRAFORM_PROVIDER_VERSION)
 

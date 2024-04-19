@@ -31,6 +31,7 @@ spec:
     guestId: other3xLinux64Guest
     hostSystemId: ${data.vsphere_host.host.id}
     memory: 2048
+    name: terraform-test
     networkInterface:
     - networkId: ${data.vsphere_network.network.id}
     numCpus: 2

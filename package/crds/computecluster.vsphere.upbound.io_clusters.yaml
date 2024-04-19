@@ -410,6 +410,35 @@ spec:
                       3600 seconds (1 hour). The timeout for each host maintenance
                       mode operation when removing hosts from a cluster.'
                     type: number
+                  hostImage:
+                    description: Enables vLCM on the cluster and applies an ESXi image
+                      with the provided configuration. Details about the host image
+                      which should be applied to the cluster.
+                    items:
+                      properties:
+                        component:
+                          description: A custom component to add to the base image.
+                            TODO - add link to offline depot resource docs List of
+                            custom components.
+                          items:
+                            properties:
+                              key:
+                                description: The identifier of the component The identifier
+                                  for the component.
+                                type: string
+                              version:
+                                description: The version of the component The version
+                                  to use.
+                                type: string
+                            type: object
+                          type: array
+                        esxVersion:
+                          description: The ESXi version which will be used as a base
+                            for the image. See host_base_images. The ESXi version
+                            which the image is based on.
+                          type: string
+                      type: object
+                    type: array
                   hostManaged:
                     description: 'Can be set to true if compute cluster membership
                       will be managed through the host resource rather than the compute_cluster
@@ -515,6 +544,38 @@ spec:
                     description: Enables vSAN on the cluster. Whether the vSAN service
                       is enabled for the cluster.
                     type: boolean
+                  vsanEsaEnabled:
+                    description: Enables vSAN ESA on the cluster. Whether the vSAN
+                      ESA service is enabled for the cluster.
+                    type: boolean
+                  vsanFaultDomains:
+                    description: Configurations of vSAN fault domains. The configuration
+                      for vSAN fault domains.
+                    items:
+                      properties:
+                        faultDomain:
+                          description: The configuration for single fault domain.
+                            The configuration for single fault domain.
+                          items:
+                            properties:
+                              hostIds:
+                                description: The managed object IDs of the hosts to
+                                  put in the fault domain. The managed object IDs
+                                  of the hosts to put in the fault domain.
+                                items:
+                                  type: string
+                                type: array
+                              name:
+                                description: The name of the cluster. The name of
+                                  fault domain.
+                                type: string
+                            required:
+                            - hostIds
+                            - name
+                            type: object
+                          type: array
+                      type: object
+                    type: array
                   vsanNetworkDiagnosticModeEnabled:
                     description: Enables network diagnostic mode for vSAN performance
                       service on the cluster. Whether the vSAN network diagnostic
@@ -534,9 +595,49 @@ spec:
                     items:
                       type: string
                     type: array
+                  vsanStretchedCluster:
+                    description: Configurations of vSAN stretched cluster. The configuration
+                      for stretched cluster.
+                    items:
+                      properties:
+                        preferredFaultDomainHostIds:
+                          description: The managed object IDs of the hosts to put
+                            in the first fault domain. The managed object IDs of the
+                            hosts to put in the first fault domain.
+                          items:
+                            type: string
+                          type: array
+                        preferredFaultDomainName:
+                          description: The name of first fault domain. Default is
+                            Preferred. The name of prepferred fault domain.
+                          type: string
+                        secondaryFaultDomainHostIds:
+                          description: The managed object IDs of the hosts to put
+                            in the second fault domain. The managed object IDs of
+                            the hosts to put in the second fault domain.
+                          items:
+                            type: string
+                          type: array
+                        secondaryFaultDomainName:
+                          description: The name of second fault domain. Default is
+                            Secondary. The name of secondary fault domain.
+                          type: string
+                        witnessNode:
+                          description: The managed object IDs of the host selected
+                            as witness node when enable stretched cluster. The managed
+                            object IDs of the host selected as witness node when enable
+                            stretched cluster.
+                          type: string
+                      required:
+                      - preferredFaultDomainHostIds
+                      - secondaryFaultDomainHostIds
+                      - witnessNode
+                      type: object
+                    type: array
                   vsanUnmapEnabled:
-                    description: Enables vSAN unmap on the cluster. Whether the vSAN
-                      unmap service is enabled for the cluster.
+                    description: Enables vSAN unmap on the cluster. You must explicitly
+                      enable vSAN unmap when you enable vSAN ESA on the cluster. Whether
+                      the vSAN unmap service is enabled for the cluster.
                     type: boolean
                   vsanVerboseModeEnabled:
                     description: Enables verbose mode for vSAN performance service
